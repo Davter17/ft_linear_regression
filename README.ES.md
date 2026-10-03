@@ -1,35 +1,52 @@
-# ft_linear_regression
+# ft_linear_regression - Proyecto de 42 School
 
 Implementación de un algoritmo de regresión lineal simple desde cero usando gradiente descendente para predecir precios de coches según su kilometraje.
 
-## Descripción general
+## Descripción General
 
 Este proyecto predice precios de coches usando la hipótesis lineal:
 
 ```
-precio = θ₀ + θ₁ × kilometraje
+precio = theta0 + theta1 * kilometraje
 ```
 
-Donde:
-- `θ₀` (theta0) = intersección
-- `θ₁` (theta1) = pendiente
+El modelo se entrena usando gradiente descendente con normalización min-max para una mejor convergencia. Los parámetros se guardan en `trained_data.json` para predicciones posteriores.
 
-El modelo se entrena usando gradiente descendente con normalización min-max para una mejor convergencia.
+## Características
 
-## Estructura del proyecto
+### Entrenamiento
+- Optimización por gradiente descendente
+- Normalización min-max para mejor convergencia
+- Tasa de aprendizaje e iteraciones configurables
+- Guarda los parámetros entrenados en JSON
+- Maneja casos edge (datos vacíos, punto único, valores idénticos)
+
+### Predicción y Evaluación
+- Estimación de precio en tiempo real desde la entrada de kilometraje
+- Gráfica visual con línea de regresión y puntos de datos
+- Métricas de precisión del modelo (MSE, RMSE, MAE, R²)
+- Validación de entrada para valores negativos/inválidos
+
+## Estructura del Proyecto
 
 ```
-├── data.csv           # Dataset con 24 coches (kilometraje y precio)
-├── training.py        # Entrena el modelo y guarda los parámetros
-├── predict.py         # Predice el precio y visualiza los resultados
-├── score.py           # Calcula las métricas de precisión del modelo
-└── trained_data.json  # Parámetros entrenados (generado automáticamente)
+linearRegression/
+├── data.csv              # Dataset con 24 coches (kilometraje y precio)
+├── training.py           # Entrena el modelo y guarda los parámetros
+├── predict.py            # Predice precio, muestra métricas y visualiza resultados
+├── utils.py              # Utilidades compartidas para carga de datos
+├── trained_data.json     # Parámetros entrenados (generado)
+└── .gitignore
 ```
+
+## Dependencias
+
+- Python 3
+- matplotlib (para visualización)
 
 ## Instalación
 
-### Opción 1: Usando un entorno virtual (recomendado)
-
+### Opción 1: Entorno virtual (recomendado)
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -37,15 +54,13 @@ pip install matplotlib
 ```
 
 ### Opción 2: Paquete del sistema
-
 ```bash
 sudo apt install python3-matplotlib
 ```
 
 ## Uso
 
-### 1. Entrenar el modelo
-
+### Entrenar el modelo
 ```bash
 python training.py
 ```
@@ -57,8 +72,7 @@ theta1: -0.0213
 MSE: 445727.42
 ```
 
-### 2. Hacer predicciones
-
+### Hacer predicciones y evaluar
 ```bash
 python predict.py
 ```
@@ -67,96 +81,64 @@ Introduce el kilometraje cuando se te pida:
 ```
 Enter the car mileage: 100000
 The estimated price is: 6353.80
+
+=== Model accuracy metrics ===
+
+MSE  (Mean Squared Error): 445727.42
+RMSE (Root Mean Squared Error): 667.63
+MAE  (Mean Absolute Error): 556.50
+R²   (Coefficient of Determination): 0.7329
+
+Interpretation:
+- The model is off by an average of 557€ per prediction
+- R² = 73.29% of the price variance is explained by the model
 ```
 
-Se mostrará una gráfica con:
+Se muestra una gráfica con:
 - Puntos azules: datos reales
 - Línea verde: línea de regresión
 - Punto rojo: tu predicción
 
-### 3. Evaluar la precisión del modelo
+## Manejo de Errores
 
-```bash
-python score.py
-```
+Los programas manejan todos los casos edge correctamente:
 
-Salida:
-```
-=== Model accuracy metrics ===
-
-MSE  (Mean Squared Error): 445727.42
-RMSE (Root Mean Squared Error): 667.59
-MAE  (Mean Absolute Error): 523.41
-R²   (Coefficient of Determination): 0.7823
-
-Interpretation:
-- The model is off by an average of 523€ per prediction
-- R² = 78.23% of the price variance is explained by the model
-```
-
-## Manejo de errores
-
-Los programas incluyen manejo de errores completo:
-
-- **Errores de archivo**: Mensajes claros si `data.csv` o `trained_data.json` faltan o no son accesibles
-- **Validación de datos**: Se detectan y reportan datos inválidos (no numéricos, valores negativos) en archivos CSV con números de fila
-- **Validación de entrada**: Se rechazan entradas de kilometraje negativas o no numéricas con mensajes de error útiles
-- **Validación de JSON**: Se detectan archivos `trained_data.json` corruptos o malformados
+- **CSV vacío**: "Error: need at least 2 data points for linear regression"
+- **Un solo dato**: "Error: need at least 2 data points for linear regression"
+- **Filas incompletas**: "Error: row X is incomplete"
+- **Datos inválidos**: "Error: row X has invalid data"
+- **Valores negativos**: "Error: row X has negative values"
+- **Valores idénticos**: "Error: all mileage/price values are identical"
+- **JSON faltante**: Usa valores por defecto con advertencia
+- **JSON corrupto**: "Error: trained_data.json is corrupted"
+- **Entrada inválida**: Re-pide hasta introducir número válido
 
 ## Algoritmo
 
-### Gradiente descendente
+### Gradiente Descendente
 
-El algoritmo ajusta iterativamente θ₀ y θ₁ para minimizar el error de predicción:
+El algoritmo ajusta iterativamente theta0 y theta1 para minimizar el error de predicción:
 
 ```
-θ₀ = θ₀ - α × (1/m) × Σ(ŷ - y)
-θ₁ = θ₁ - α × (1/m) × Σ(ŷ - y) × x
+theta0 = theta0 - alpha * (1/m) * sum(y_hat - y)
+theta1 = theta1 - alpha * (1/m) * sum(y_hat - y) * x
 ```
 
 Donde:
-- `α` = tasa de aprendizaje (0.1)
+- `alpha` = tasa de aprendizaje (0.1)
 - `m` = número de muestras
-- `ŷ` = valor predicho
+- `y_hat` = valor predicho
 - `y` = valor real
 
 ### Normalización
 
-Los datos se normalizan usando escalado min-max para una mejor convergencia:
+Los datos se normalizan usando escalado min-max:
 
 ```
 x_norm = (x - x_min) / (x_max - x_min)
 ```
 
 Después del entrenamiento, los parámetros se desnormalizan para trabajar con valores originales.
-
-## Métricas
-
-El programa `score.py` calcula cuatro métricas clave para evaluar el rendimiento del modelo:
-
-### MSE (Error Cuadrático Medio)
-Promedio de las diferencias al cuadrado entre predicciones y valores reales. Al elevar al cuadrado los errores, penaliza más los errores grandes que los pequeños. Útil para detectar outliers, pero difícil de interpretar porque está en unidades cuadradas (€²). **Valores más bajos = mejor modelo.**
-
-### RMSE (Raíz del Error Cuadrático Medio)
-Raíz cuadrada del MSE. Está en las mismas unidades que la variable objetivo (€), por lo que es más interpretable que el MSE. Te dice cuánto se desvían las predicciones en promedio. **Valores más bajos = mejor modelo.**
-
-### MAE (Error Absoluto Medio)
-Promedio de los errores absolutos (sin elevar al cuadrado). Te dice cuánto se equivoca el modelo en promedio por predicción, en euros. Es más robusto a outliers que MSE/RMSE. **Valores más bajos = mejor modelo.**
-
-### R² (Coeficiente de Determinación)
-Proporción de la varianza del precio que explica el modelo. Va de 0 a 1 (puede ser negativo si el modelo funciona peor que predecir la media). R²=1 significa predicción perfecta, R²=0 significa que el modelo no explica nada. Por ejemplo, R²=0.78 significa que el 78% de la variación del precio se explica por el kilometraje. **Valores más altos = mejor modelo.**
-
-### Ejemplo de interpretación
-Si MAE=523 y R²=0.78:
-- El modelo se equivoca en promedio 523€ por predicción
-- El 78% de la variación del precio se explica por el kilometraje
-- El 22% restante se debe a otros factores (edad, estado, marca, etc.)
-
-## Dataset
-
-El archivo `data.csv` contiene 24 coches con:
-- **km**: kilometraje (22.899 - 240.000 km)
-- **price**: precio en euros (3.650 - 8.290 €)
 
 ## Configuración
 
@@ -166,6 +148,24 @@ En `training.py` puedes ajustar:
 
 Una tasa de aprendizaje muy alta puede causar divergencia, una muy baja hará que converja lentamente.
 
+## Calidad del Código
+
+- Manejo exhaustivo de errores para todos los casos edge
+- Validación de datos con números de fila para errores en CSV
+- Validación de entrada para valores negativos/inválidos
+- Validación de JSON para archivos corruptos
+- Separación limpia de responsabilidades con utilidades compartidas
+
+## Requisitos
+
+- Python 3
+- matplotlib
+- Entorno tipo Unix (Linux, macOS o WSL)
+
+## Autor
+
+- **Mario Pico** (@Davter17)
+
 ## Licencia
 
-Este proyecto forma parte del plan de estudios de 42 (OuterCore).
+Este proyecto forma parte del plan de estudios de 42 school y sigue sus directrices académicas.
